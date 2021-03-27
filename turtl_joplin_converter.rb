@@ -205,7 +205,23 @@ class TurtlJoplinConverter
   end
 
   def write_tag_joins
+    @joplin_notes.select { |note| note[:tags].any? }.each do |note|
+      # note[:tags] = ["foo", "bar"]
+      note[:tags].each do |tag_title|
+        tag_id = @joplin_tags.select { |joplin_tag| joplin_tag[:title] == tag_title }.first[:id]
+        tag_join_id = generate_id
+        File.write("raw/#{tag_join_id}.md", tag_join_joplin_format(tag_join_id, tag_id, note[:id]).strip)
+      end
+    end
+  end
 
+  def tag_join_joplin_format(tag_join_id, tag_id, note_id)
+    <<~MD
+      id: #{tag_join_id}
+      note_id: #{note_id}
+      tag_id: #{tag_id}
+      #{timestamps_md}#{metadata_md}type_: 6
+    MD
   end
 
   def notebook_joplin_format(notebook)
@@ -239,6 +255,8 @@ class TurtlJoplinConverter
       type_: #{tag[:type_]}
     MD
   end
+
+
 
   def timestamps_md
     <<~TIME
